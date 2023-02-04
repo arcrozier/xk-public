@@ -339,7 +339,7 @@ void concurrentpipetest(void)
       {
         error("Invalid value written: %c (must be less than %c and greater than %c)", buf[0], (char)(NUM_WRITERS + 'A'), (char)('A' - 1));
       }
-      if (found[writer])
+      if (found[(int) writer])
       {
         error("Writes should only happen once, but already found write for %d", (int)(c - 'A'));
       }

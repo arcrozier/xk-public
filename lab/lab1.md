@@ -337,8 +337,8 @@ Take a look at `inc/param.h` for the max number of open files per system and per
  * there is an invalid address before the end of the string 
  * the file does not exist
  * there is no available file descriptor 
- * since the file system is read only, any write flags for non console files are invalid
- * O_CREATE is not permitted (for now)
+ * since the file system is read only, any write flags for non console files are invalid (until lab 4)
+ * O_CREATE is not permitted (until lab 4)
  *
  * note that for lab1, the file system does not support file create
  */
@@ -361,8 +361,8 @@ sys_open(void);
  *
  * Fewer than arg2 bytes might be read due to these conditions:
  * If the current position + arg2 is beyond the end of the file.
- * If this is a pipe or console device and fewer than arg2 bytes are available 
- * If this is a pipe and the other end of the pipe has been closed.
+ * If this is a pipe or console device and fewer than arg2 bytes are available  (lab 2)
+ * If this is a pipe and the other end of the pipe has been closed. (lab 2)
  *
  * Error conditions:
  * arg0 is not a file descriptor open for read 
@@ -389,7 +389,7 @@ sys_read(void);
  * before returning with that number of bytes.
  *
  * If writing to a pipe and the other end of the pipe is closed,
- * return -1.
+ * return -1. (lab 2)
  *
  * Error conditions:
  * arg0 is not a file descriptor open for write
@@ -397,7 +397,7 @@ sys_read(void);
  * arg2 is not positive
  *
  * note that for lab1, the file system does not support writing past 
- * the end of the file. Normally this would extend the size of the file
+ * the end of the file (or at all). Normally this would extend the size of the file
  * allowing the write to complete, to the maximum extent possible 
  * provided there is space on the disk.
  */

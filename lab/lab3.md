@@ -100,7 +100,7 @@ In user space, we have provided an implementation of `malloc` and `free` (in `us
 done, user-level applications should be able to call `malloc` and `free`.
 
 ### Exercise
-Implement `sbrk`.
+> Implement `sbrk`.
 
 #### What to Implement
 ```c
@@ -187,8 +187,8 @@ $
 At this point, you will execute your tests in the shell. In GDB, the `initcode` command will load the symbol table for `init`, not the currently running test code. To step through the test code, use, for example, `lab3test` to load symbols for `lab3test.c`. You can do something similar for lab 1 and 2 tests.
 
 ### Exercise
-Allow xk to boot into the shell. Try a set of commands like `cat`, `echo`, `grep`,
-`ls`, `wc` along with `|` (i.e. pipe) in the shell to see if it works properly.
+> Allow xk to boot into the shell. Try a set of commands like `cat`, `echo`, `grep`,
+> `ls`, `wc` along with `|` (i.e. pipe) in the shell to see if it works properly.
 
 ### Question #2:
 Explain how the file descriptors are set up by the xk's shell program in order to run the command `ls | wc`.
@@ -203,7 +203,12 @@ reads or writes to the user stack (e.g., creating a stack frame, accessing local
 variables), we grow the stack as needed.
 
 When the user process starts, you should set up the user stack with
-an initial page to store application arguments.
+an initial page to store application arguments. Currently, the stack is allocated
+3 pages. You should change it so that initially, only 1 page is allocated.
+
+### Exercise
+> Modify `vspaceinitcode` and `vspaceinitstack` so they
+> only allocate a single stack page when a process is created.
 
 To implement on-demand stack growth, you will need to understand how to
 handle page faults.
@@ -232,7 +237,7 @@ b<sub>1</sub> is set if the fault occurred on a write.<br />
 b<sub>0</sub> is set if it was a page protection issue. This is not set if the page is not present.<br />
 More can be found [here](https://wiki.osdev.org/Exceptions#Page_Fault)
 
-**In this lab, you can design your stack grower to never exceed 10 stack pages.**
+**In this lab, you should design your stack grower to never exceed 10 stack pages.**
 
 ### Question #3:
 When a syscall completes, user-level execution resumes with the instruction
@@ -247,14 +252,14 @@ an application calls a procedure with a local variable that is an array
 of a million integers?  
 
 ### Exercise
-Implement growing the user stack on-demand. Note that our test code
-uses the system call `sysinfo` to figure out how much memory is used.
+> Implement growing the user stack on-demand. Note that our test code
+> uses the system call `sysinfo` to figure out how much memory is used.
 
 ### Question #5:
 Is it possible to reduce the user stack size at
 run-time (i.e., to deallocate the user stack when a procedure with a
-large number of local variables goes out of scope)?  If so, sketch how that
-might work.
+large number of local variables goes out of scope)? If not, explain why.
+If so, sketch how that might work.
 
 ## Warning
 At this point we will be editing fork. It is possible to get in a state where
@@ -342,7 +347,7 @@ which function should you use in xk ensure that the TLB does not have a stale ve
 How does it work?
 
 ### Exercise
-Implement copy-on-write fork.
+> Implement copy-on-write fork.
 
 ## Testing and hand-in
 After you implement the system calls described above. The kernel should be able
