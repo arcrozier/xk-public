@@ -157,7 +157,7 @@ vrloaddata(struct vregion *r, uint64_t va, struct inode *ip, uint offset, uint s
 
 // Initializes the code region in the given vspace and copies the
 // code in init to the region. Also allocates space for the stack
-// region of 1 page.
+// region of 3 pages.
 // Note: This should only be called by the initial process.
 void
 vspaceinitcode(struct vspace *vs, char *init, uint64_t size)
@@ -174,12 +174,13 @@ vspaceinitcode(struct vspace *vs, char *init, uint64_t size)
 
   // add the stack
   // make room for the stack and (implied) guard
-  stack = PGROUNDUP(size) + (2 << PT_SHIFT);
+  stack = PGROUNDUP(size) + (2 << PT_SHIFT) * 2;
 
   vs->regions[VR_USTACK].va_base = stack;
-  vs->regions[VR_USTACK].size = PGSIZE;
+  const size_t ustack_size = 3 * PGSIZE;
+  vs->regions[VR_USTACK].size = ustack_size;
   assert(
-    vregionaddmap(&vs->regions[VR_USTACK], stack - PGSIZE, PGSIZE, VPI_PRESENT, VPI_WRITABLE) >= 0
+    vregionaddmap(&vs->regions[VR_USTACK], stack - ustack_size, ustack_size, VPI_PRESENT, VPI_WRITABLE) >= 0
   );
 
   vspaceinvalidate(vs);
@@ -512,10 +513,11 @@ vspaceinitstack(struct vspace *vs, uint64_t start)
 {
   struct vregion *vr = &vs->regions[VR_USTACK];
   vr->va_base = start;
-  vr->size = PGSIZE;
+  const size_t ustack_size = 3 * PGSIZE;
+  vr->size = ustack_size;
 
   // stack page
-  if (vregionaddmap(vr, start - PGSIZE, PGSIZE, VPI_PRESENT, VPI_WRITABLE) < 0)
+  if (vregionaddmap(vr, start - ustack_size, ustack_size, VPI_PRESENT, VPI_WRITABLE) < 0)
     return -1;
 
   vspaceinvalidate(vs);
