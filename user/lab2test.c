@@ -67,6 +67,7 @@ int main()
     fdesctest();
     pipetest();
     extendedpipetest();
+    concurrentpipetest();
     childpidtest();
     exectest();
     pkilltest();
@@ -289,7 +290,7 @@ void concurrentpipetest(void)
         break;
       }
     }
-    sleep((NUM_WRITERS - i) * 10);
+    //sleep(100);
     // printf(stdout, "Child #%d started writing\n", i);
     for (int j = 0; j < WRITE_AMT; j++)
     {
@@ -312,6 +313,7 @@ void concurrentpipetest(void)
     int total_read = 0;
     while (true)
     {
+      sleep(10);
       int amount_read = 0;
       while (amount_read < WRITE_AMT)
       {
@@ -365,6 +367,13 @@ void concurrentpipetest(void)
     }
 
     printf(stdout, "concurrentpiptest: ok\n");
+    int children = 0;
+    while (wait() != -1) {
+      children++;
+    }
+    if (children == 0) {
+      error("Found 0 children, expected at least 1");
+    }
   }
 }
 
