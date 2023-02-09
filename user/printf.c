@@ -53,7 +53,7 @@ static void printint(int fd, int xx, int base, int sgn) {
     putc(fd, buf[i]);
 }
 
-// Print to the given fd. Only understands %d, %x, %p, %s.
+// Print to the given fd. Only understands %d, %x, %p, %c, %s.
 void printf(int fd, char *fmt, ...) {
   char *s;
   int c, i, state;
@@ -90,6 +90,8 @@ void printf(int fd, char *fmt, ...) {
           s = "(null)";
         for (; *s; s++)
           putc(fd, *s);
+      } else if (c == 'c') {
+        putc(fd, (char) va_arg(valist, int));
       } else if (c == '%') {
         putc(fd, c);
       } else {

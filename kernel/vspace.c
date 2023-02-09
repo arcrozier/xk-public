@@ -157,7 +157,7 @@ vrloaddata(struct vregion *r, uint64_t va, struct inode *ip, uint offset, uint s
 
 // Initializes the code region in the given vspace and copies the
 // code in init to the region. Also allocates space for the stack
-// region of 1 page.
+// region of 3 pages.
 // Note: This should only be called by the initial process.
 void
 vspaceinitcode(struct vspace *vs, char *init, uint64_t size)
@@ -165,7 +165,7 @@ vspaceinitcode(struct vspace *vs, char *init, uint64_t size)
   uint64_t stack;
 
   // code pages
-  vs->regions[VR_CODE].va_base = 0;
+  vs->regions[VR_CODE].va_base = PGSIZE;
   vs->regions[VR_CODE].size = PGROUNDUP(size);
   assertm(
     vradddata(&vs->regions[VR_CODE], 0, init, size, VPI_PRESENT, VPI_READONLY) == 0,
@@ -174,12 +174,13 @@ vspaceinitcode(struct vspace *vs, char *init, uint64_t size)
 
   // add the stack
   // make room for the stack and (implied) guard
-  stack = PGROUNDUP(size) + (2 << PT_SHIFT);
+  stack = PGROUNDUP(size) + (2 << PT_SHIFT) * 2;
 
   vs->regions[VR_USTACK].va_base = stack;
-  vs->regions[VR_USTACK].size = PGSIZE;
+  const size_t ustack_size = 3 * PGSIZE;
+  vs->regions[VR_USTACK].size = ustack_size;
   assert(
-    vregionaddmap(&vs->regions[VR_USTACK], stack - PGSIZE, PGSIZE, VPI_PRESENT, VPI_WRITABLE) >= 0
+    vregionaddmap(&vs->regions[VR_USTACK], stack - ustack_size, ustack_size, VPI_PRESENT, VPI_WRITABLE) >= 0
   );
 
   vspaceinvalidate(vs);
@@ -194,6 +195,7 @@ vspaceloadcode(struct vspace *vs, char *path, uint64_t *rip)
 {
   struct inode *ip;
   struct proghdr ph;
+  int off, sz, vr_size;
   int off, sz, vr_size;
   struct elfhdr elf;
   int i;
@@ -212,6 +214,7 @@ vspaceloadcode(struct vspace *vs, char *path, uint64_t *rip)
 
   // Set start bound
   vs->regions[VR_CODE].va_base = PGSIZE;
+  vs->regions[VR_CODE].va_base = PGSIZE;
 
   // Load program into memory.
   for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
@@ -226,10 +229,13 @@ vspaceloadcode(struct vspace *vs, char *path, uint64_t *rip)
 
     // use readelf --sections --program-headers -W <executable> to view the ELF headers and the permissions
     if((sz = vregionaddmap(&vs->regions[VR_CODE], (uint64_t)ph.vaddr, ph.memsz, VPI_PRESENT, (ph.flags & ELF_PROG_FLAG_WRITE) ? VPI_WRITABLE : VPI_READONLY)) < 0)
+    // use readelf --sections --program-headers -W <executable> to view the ELF headers and the permissions
+    if((sz = vregionaddmap(&vs->regions[VR_CODE], (uint64_t)ph.vaddr, ph.memsz, VPI_PRESENT, (ph.flags & ELF_PROG_FLAG_WRITE) ? VPI_WRITABLE : VPI_READONLY)) < 0)
      goto elf_failure;
     if(ph.vaddr % PGSIZE != 0)
       goto elf_failure;
 
+    vr_size = ph.vaddr + ph.memsz;
     vr_size = ph.vaddr + ph.memsz;
 
     if(vrloaddata(&vs->regions[VR_CODE], ph.vaddr, ip, ph.off, ph.filesz) < 0)
@@ -238,7 +244,9 @@ vspaceloadcode(struct vspace *vs, char *path, uint64_t *rip)
 
   // Set end bound;
   vs->regions[VR_CODE].size = PGROUNDUP(vr_size);
+  vs->regions[VR_CODE].size = PGROUNDUP(vr_size);
   // The heap will be right after the code
+  vs->regions[VR_HEAP].va_base = PGROUNDUP(vr_size + PGSIZE);
   vs->regions[VR_HEAP].va_base = PGROUNDUP(vr_size + PGSIZE);
   vs->regions[VR_HEAP].size = 0;
 
@@ -511,10 +519,11 @@ vspaceinitstack(struct vspace *vs, uint64_t start)
 {
   struct vregion *vr = &vs->regions[VR_USTACK];
   vr->va_base = start;
-  vr->size = PGSIZE;
+  const size_t ustack_size = 3 * PGSIZE;
+  vr->size = ustack_size;
 
   // stack page
-  if (vregionaddmap(vr, start - PGSIZE, PGSIZE, VPI_PRESENT, VPI_WRITABLE) < 0)
+  if (vregionaddmap(vr, start - ustack_size, ustack_size, VPI_PRESENT, VPI_WRITABLE) < 0)
     return -1;
 
   vspaceinvalidate(vs);
