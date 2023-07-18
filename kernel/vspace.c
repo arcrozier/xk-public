@@ -168,7 +168,7 @@ vspaceinitcode(struct vspace *vs, char *init, uint64_t size)
   vs->regions[VR_CODE].va_base = PGSIZE;
   vs->regions[VR_CODE].size = PGROUNDUP(size);
   assertm(
-    vradddata(&vs->regions[VR_CODE], 0, init, size, VPI_PRESENT, VPI_READONLY) == 0,
+    vradddata(&vs->regions[VR_CODE], PGSIZE, init, size, VPI_PRESENT, VPI_WRITABLE) == 0,
     "failed to allocate init code data"
   );
 

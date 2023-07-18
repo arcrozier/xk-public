@@ -74,8 +74,6 @@ int main()
 
     printf(1, "lab2 tests passed!!\n");
 
-    while (1)
-      ;
   }
 
   while ((wpid = wait()) >= 0 && wpid != pid)
